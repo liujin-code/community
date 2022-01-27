@@ -10,4 +10,8 @@ public interface DiscussPostService {
     List<DiscussPost> selectDiscussPosts(int userId,int offset,int limit);
 
     int selectDiscussPostRows(int userId);
+
+    DiscussPost selectDiscussPostById(int id);
+
+    int insertDiscussPost(DiscussPost discussPost);
 }

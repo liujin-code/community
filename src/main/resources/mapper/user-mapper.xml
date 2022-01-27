@@ -22,6 +22,9 @@
     <update id="updatePassword">
         update user set password = #{password} where id = #{id}
     </update>
+    <update id="updateHeader">
+        update user set header_url = #{headerUrl} where id = #{userId}
+    </update>
 
     <select id="selectById" resultType="User">
         select <include refid="selectFields"></include>

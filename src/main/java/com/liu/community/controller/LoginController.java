@@ -4,18 +4,22 @@ import com.google.code.kaptcha.Producer;
 import com.liu.community.config.CaptchaConfiguration;
 import com.liu.community.entity.User;
 import com.liu.community.service.UserService;
-import com.liu.community.utils.ActivateConstant;
+import com.liu.community.utils.CommunityConstant;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
@@ -23,7 +27,7 @@ import java.io.IOException;
 import java.util.Map;
 
 @Controller
-public class LoginController implements ActivateConstant {
+public class LoginController implements CommunityConstant {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     @Autowired
@@ -31,6 +35,9 @@ public class LoginController implements ActivateConstant {
 
     @Autowired
     private CaptchaConfiguration captchaConfiguration;
+
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
 
     @RequestMapping(path = "/register", method = RequestMethod.GET)
     public String getRegisterPage() {
@@ -46,7 +53,7 @@ public class LoginController implements ActivateConstant {
     public String register(Model model, User user){
         Map<String, Object> map = userService.register(user);
         if (map.isEmpty()||map==null){
-            model.addAttribute("msg","您的账号已经注册成功,请点击链接激活!");
+            model.addAttribute("msg","注册成功,我们已经向您的邮箱发送了一封激活邮件,请尽快激活!");
             model.addAttribute("target","/index");
             return "/site/operate-result";
         }else {
@@ -100,7 +107,34 @@ public class LoginController implements ActivateConstant {
         } catch (IOException e) {
             logger.error("响应验证码失败:" + e.getMessage());
         }
+    }
+    @RequestMapping(path = "/login",method = RequestMethod.POST)
+    public String login(String username,String password,String code,Model model,
+                        boolean rememberMe,HttpSession session,HttpServletResponse response)  {
+        String captcha = (String) session.getAttribute("captcha");
+        if (StringUtils.isBlank(captcha) || StringUtils.isBlank(code) || !captcha.equalsIgnoreCase(code)) {
+            model.addAttribute("codeMsg", "验证码不正确!");
+            return "/site/login";
+        }
+        int expireSeconds = rememberMe?REMEMBER_EXPIRED_SECONDS:DEFAULT_EXPIRED_SECONDS;
+        Map<String, Object> map = userService.login(username, password, (long) expireSeconds);
+        if (map.containsKey("ticket")){
+            Cookie cookie = new Cookie("ticket", map.get("ticket").toString());
+            cookie.setPath(contextPath);
+            cookie.setMaxAge(expireSeconds);
+            response.addCookie(cookie);
+            return "redirect:/index";
+        }else{
+            model.addAttribute("usernameMsg", map.get("usernameMsg"));
+            model.addAttribute("passwordMsg", map.get("passwordMsg"));
+            return "/site/login";
+        }
+    }
 
+    @RequestMapping(path = "/logout",method = RequestMethod.GET)
+    public String logOut(@CookieValue String ticket){
 
+        userService.logout(ticket);
+        return "redirect:/index";
     }
 }
