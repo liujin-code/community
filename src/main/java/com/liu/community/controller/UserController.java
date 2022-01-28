@@ -2,7 +2,10 @@ package com.liu.community.controller;
 
 import com.liu.community.annotation.LoginRequired;
 import com.liu.community.entity.User;
+import com.liu.community.service.FollowService;
+import com.liu.community.service.LikeService;
 import com.liu.community.service.UserService;
+import com.liu.community.utils.CommunityConstant;
 import com.liu.community.utils.CommunityUtil;
 import com.liu.community.utils.HostHolder;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +25,7 @@ import java.io.*;
 
 @Controller
 @RequestMapping("/user")
-public class UserController {
+public class UserController implements CommunityConstant {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -43,6 +46,12 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private LikeService likeService;
+
+    @Autowired
+    private FollowService followService;
 
     @RequestMapping(path = "/setting",method = RequestMethod.GET)
     @LoginRequired
@@ -100,5 +109,34 @@ public class UserController {
         } catch (IOException e) {
             logger.error("读取头像失败: " + e.getMessage());
         }
+    }
+
+    @RequestMapping(path = "/profile/{userId}",method = RequestMethod.GET)
+    public String profile(Model model,@PathVariable("userId") int userId){
+//        用户
+        User user = userService.selectUserById(userId);
+        model.addAttribute("user", user);
+        if (user == null) {
+            throw new RuntimeException("该用户不存在!");
+        }
+
+//        关注的人的数量
+        long followeeCount = followService.getFolloweeCount(userId, ENTITY_TYPE_USER);
+        model.addAttribute("followeeCount", followeeCount);
+
+//        粉丝数量
+        long followerCount = followService.getFollowerCount(ENTITY_TYPE_USER, userId);
+        model.addAttribute("followerCount", followerCount);
+
+        boolean hasFollowed = false;
+        if (hostHolder.getUser()!=null){
+             hasFollowed = followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);
+        }
+//        System.out.println("hasFollowed"+ hasFollowed);
+        model.addAttribute("hasFollowed", hasFollowed);
+//        点赞数量
+        long likeCount = likeService.UserLikeCount(userId);
+        model.addAttribute("likeCount", likeCount);
+        return "/site/profile";
     }
 }

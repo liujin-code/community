@@ -19,4 +19,6 @@ public interface UserService {
     public LoginTicket selectLoginTicketByTicket(String ticket);
 
     public int updateHeader(int userId, String headerUrl);
+
+    User selectUserByName(String toName);
 }

@@ -2,6 +2,7 @@ package com.liu.community.controller.interceptor;
 
 import com.liu.community.entity.LoginTicket;
 import com.liu.community.entity.User;
+import com.liu.community.service.MessageService;
 import com.liu.community.service.UserService;
 import com.liu.community.utils.CookieUtils;
 import com.liu.community.utils.HostHolder;
@@ -18,6 +19,9 @@ import java.util.Date;
 public class LoginTicketInterceptor implements HandlerInterceptor {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private MessageService messageService;
 
     @Autowired
     private HostHolder hostHolder;
