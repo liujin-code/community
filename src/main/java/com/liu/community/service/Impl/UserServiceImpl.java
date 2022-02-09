@@ -222,4 +222,9 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         String redisKey = RedisKeyUtils.getUserKey(userId);
         redisTemplate.delete(redisKey);
     }
+
+    @Override
+    public User selectUserByName(String toName) {
+        return userMapper.selectByName(toName);
+    }
 }
