@@ -29,7 +29,6 @@ public class LikeServiceImpl implements LikeService {
                 if (isMember) {
                     redisTemplate.opsForSet().remove(entityLikeKey, userId);
                     redisTemplate.opsForValue().decrement(userLikeKey);
-
                 } else {
                     redisTemplate.opsForSet().add(entityLikeKey, userId);
                     redisTemplate.opsForValue().increment(userLikeKey);

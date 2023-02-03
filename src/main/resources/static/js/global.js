@@ -1,4 +1,4 @@
-var CONTEX_PATH = "/community"
+var CONTEX_PATH = ""
 window.alert = function(message) {
 	if(!$(".alert-box").length) {
 		$("body").append(

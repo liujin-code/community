@@ -9,7 +9,9 @@ import com.liu.community.service.UserService;
 import com.liu.community.utils.CommunityConstant;
 import com.liu.community.utils.CommunityUtil;
 import com.liu.community.utils.HostHolder;
+import com.liu.community.utils.RedisKeyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,6 +43,9 @@ public class DiscussPostController implements CommunityConstant {
     @Autowired
     private EventProducer eventProducer;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
+
     @RequestMapping(path = "/add", method = RequestMethod.POST)
     @ResponseBody
     public String addDiscussPost(String title, String content) {
@@ -59,7 +64,7 @@ public class DiscussPostController implements CommunityConstant {
 
         discussPostService.insertDiscussPost(discussPost);
 
-//        触发评论事件
+//        触发发帖事件
         Event event = new Event()
                 .setTopic(TOPIC_PUBLISH)
                 .setEntityType(ENTITY_TYPE_POST)
@@ -67,6 +72,11 @@ public class DiscussPostController implements CommunityConstant {
                 .setUserId(hostHolder.getUser().getId());
 
         eventProducer.handlerEvent(event);
+
+//        计算帖子分数
+        String postScoreKey = RedisKeyUtils.getPostScoreKey();
+        redisTemplate.opsForSet().add(postScoreKey,discussPost.getId());
+
         return CommunityUtil.getJsonString(0, "发布成功!");
     }
 
@@ -75,6 +85,11 @@ public class DiscussPostController implements CommunityConstant {
 //        获取帖子信息
         DiscussPost discussPost = discussPostService.selectDiscussPostById(id);
 
+        if (discussPost==null||discussPost.getStatus()==2){
+            model.addAttribute("msg","您访问的文章已经被删除,将为您展示该作者其他文章");
+            model.addAttribute("target","/user/myPosts/"+discussPost.getUserId());
+            return "/site/operate-result";
+        }
         model.addAttribute("post", discussPost);
 
         User user = userService.selectUserById(discussPost.getUserId());
@@ -93,7 +108,7 @@ public class DiscussPostController implements CommunityConstant {
         int commentCount = discussPost.getCommentCount();
         page.setPath("/discuss/detail/" + id);
         page.setRows(commentCount);
-        page.setLimit(5);
+        page.setLimit(6);
         //所有评论
         List<Comment> comments = commentService.selectCommentByEntity(ENTITY_TYPE_POST, id, page.getOffset(), page.getLimit());
         // 评论列表,帖子评论放一个map中，评论的评论放一个list中
@@ -154,5 +169,87 @@ public class DiscussPostController implements CommunityConstant {
         }
         model.addAttribute("comments", commentList);
         return "/site/discuss-detail";
+    }
+
+//    置顶
+    @RequestMapping(value = "/top",method = RequestMethod.POST)
+    @ResponseBody
+    public String changeType(int id){
+        DiscussPost discussPost = discussPostService.selectDiscussPostById(id);
+        if (discussPost.getType()==1){
+            discussPostService.updateType(id,0);
+        }else {
+            discussPostService.updateType(id,1);
+        }
+        // 触发发帖事件
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.handlerEvent(event);
+
+        return CommunityUtil.getJsonString(0);
+    }
+
+//    加精
+    @RequestMapping(value = "/wonderful",method = RequestMethod.POST)
+    @ResponseBody
+    public String changeStatus(int id){
+        DiscussPost discussPost = discussPostService.selectDiscussPostById(id);
+        if (discussPost.getStatus()==1){
+            discussPostService.updateStatus(id,0);
+        }else {
+            discussPostService.updateStatus(id,1);
+        }
+
+        // 触发发帖事件
+        Event event = new Event()
+                .setTopic(TOPIC_PUBLISH)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.handlerEvent(event);
+
+        //        计算帖子分数
+        String postScoreKey = RedisKeyUtils.getPostScoreKey();
+        redisTemplate.opsForSet().add(postScoreKey,discussPost.getId());
+
+        return CommunityUtil.getJsonString(0);
+    }
+
+//    删除
+    @RequestMapping(value = "/delete",method = RequestMethod.POST)
+    @ResponseBody
+    public String delete(int id){
+        DiscussPost discussPost = discussPostService.selectDiscussPostById(id);
+        User user = hostHolder.getUser();
+        System.out.println(user.getId()+"=?"+discussPost.getUserId());
+        if (user.getId()!=discussPost.getUserId()&&(user.getType()!=1&&user.getType()!=2)){
+            return CommunityUtil.getJsonString(403,"您没有删除权限！");
+        }
+        discussPostService.updateStatus(id,2);
+//        删除帖子后批量删除评论
+//        List<Comment> comments = commentService.selectCommentByEntityId(id);
+//        List<Integer> ids = getIds(comments);
+//        commentService.updateListCommentStatus(ids,1);
+//        触发删帖事件
+        Event event = new Event()
+                .setTopic(TOPIC_DELETE)
+                .setUserId(user.getId())
+                .setEntityType(ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.handlerEvent(event);
+
+        return CommunityUtil.getJsonString(0);
+    }
+    private List<Integer> getIds(List<Comment> lists){
+        List<Integer> list = new ArrayList<>();
+        for (Comment comment:lists){
+            if (comment!=null){
+                list.add(comment.getId());
+            }
+        }
+        return list;
     }
 }

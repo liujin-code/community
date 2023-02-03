@@ -13,14 +13,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -55,6 +53,11 @@ public class UserServiceImpl implements UserService, CommunityConstant {
             user = initCatch(userId);
         }
         return user;
+    }
+
+    @Override
+    public User selectUserByEmail(String email) {
+        return userMapper.selectByEmail(email);
     }
 
     @Override
@@ -150,7 +153,15 @@ public class UserServiceImpl implements UserService, CommunityConstant {
             return map;
         }
         if (u.getStatus() == 0) {
-            map.put("usernameMsg", "账号未激活");
+            Context context = new Context();
+            context.setVariable("email", u.getEmail());
+            // http://localhost:8080/community/activation/101/code
+            String url = domain + serverContext + "/activation/" + u.getId() + "/" + u.getActivationCode();
+            System.out.println(url);
+            context.setVariable("url", url);
+            String process = templateEngine.process("/mail/activation", context);
+            emailUtils.sendMail(u.getEmail(), "激活账号", process);
+            map.put("usernameMsg", "账号未激活,已重新发送激活邮件到您的邮箱，请注意查收并激活");
             return map;
         }
         String s = CommunityUtil.generateMD5Key(password + u.getSalt());
@@ -199,8 +210,71 @@ public class UserServiceImpl implements UserService, CommunityConstant {
     }
 
     @Override
+    public int updatePassword(int userId, String password) {
+        User user = userMapper.selectById(userId);
+        String salt = user.getSalt();
+        password = CommunityUtil.generateMD5Key(password+salt);
+        int rows = userMapper.updatePassword(userId, password);
+        clearCache(userId);
+        return rows;
+    }
+
+    @Override
     public User selectUserByName(String toName) {
         return userMapper.selectByName(toName);
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities(int userId) {
+        User user = userMapper.selectById(userId);
+        List<GrantedAuthority> list = new ArrayList<>();
+        list.add(new GrantedAuthority() {
+            @Override
+            public String getAuthority() {
+                switch (user.getType()){
+                    case 1:
+                        return AUTHORITY_ADMIN;
+                    case 2:
+                        return AUTHORITY_MODERATOR;
+                    default:
+                        return AUTHORITY_USER;
+                }
+            }
+        });
+        return list;
+    }
+
+    @Override
+    public Map<String,Object> getForgetCode(String email) {
+        Map<String,Object> map = new HashMap<>();
+        if (StringUtils.isBlank(email)){
+           map.put("emailMsg","邮件不能为空！");
+           return map;
+        }
+//        System.out.println(email);
+        User user = userMapper.selectByEmail(email);
+        if (user==null){
+            map.put("emailMsg","该邮箱未注册过用户");
+            return map;
+        }
+        String code = CommunityUtil.generateUUID().substring(0, 6);
+        String forgetKey = RedisKeyUtils.getForgetKey(email);
+        redisTemplate.opsForValue().set(forgetKey,code,70*5,TimeUnit.SECONDS);
+
+        Context context = new Context();
+        context.setVariable("username",user.getUsername());
+        context.setVariable("code",code);
+        String process = templateEngine.process("/mail/forget", context);
+        emailUtils.sendMail(email,"找回密码邮件",process);
+        map.put("code",code);
+        return map;
+    }
+
+    @Override
+    public int updateUserType(int userId, int type) {
+        userMapper.updateUserType(userId,type);
+        clearCache(userId);
+        return userMapper.updateUserType(userId,type);
     }
 
     //    从缓存中获取user用户
@@ -223,8 +297,4 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         redisTemplate.delete(redisKey);
     }
 
-    @Override
-    public User selectUserByName(String toName) {
-        return userMapper.selectByName(toName);
-    }
 }

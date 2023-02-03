@@ -4,11 +4,15 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.Setting;
 
 import java.util.Date;
 import java.util.Map;
 
-@Document(indexName = "discusspost",/*type = "_doc",*/ shards = 6, replicas = 3)
+//@Document(indexName = "discusspost",/*type = "_doc",*/ shards = 6, replicas = 3)
+//es 7.0需注意地方 shards ,replicas 在document弃用，改用setting注入
+@Setting(shards = 6,replicas = 3)
+@Document(indexName = "discusspost"/*,type = "_doc",shards = 4,replicas = 2*/ )
 public class DiscussPost{
     @Id
     private int id;

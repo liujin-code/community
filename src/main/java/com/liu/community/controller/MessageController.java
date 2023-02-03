@@ -155,8 +155,8 @@ public class MessageController implements CommunityConstant {
 
         //  评论通知
         Message comment = messageService.selectLastNotice(user.getId(), TOPIC_COMMENT);
-        Map<String, Object> commentVo = new HashMap<>();
         if (comment != null) {
+            Map<String, Object> commentVo = new HashMap<>();
             commentVo.put("comment", comment);
 
             String content = HtmlUtils.htmlUnescape(comment.getContent());
@@ -172,13 +172,13 @@ public class MessageController implements CommunityConstant {
 
             int unreadCount = messageService.selectNoticeUnreadCount(user.getId(), TOPIC_COMMENT);
             commentVo.put("unreadCount", unreadCount);
+            model.addAttribute("commentVo", commentVo);
         }
-        model.addAttribute("commentVo", commentVo);
 
         //  点赞通知
         Message like = messageService.selectLastNotice(user.getId(), TOPIC_LIKE);
-        Map<String, Object> likeVo = new HashMap<>();
         if (like != null) {
+            Map<String, Object> likeVo = new HashMap<>();
             likeVo.put("like", like);
 
             String content = HtmlUtils.htmlUnescape(like.getContent());
@@ -194,13 +194,13 @@ public class MessageController implements CommunityConstant {
 
             int unreadCount = messageService.selectNoticeUnreadCount(user.getId(), TOPIC_LIKE);
             likeVo.put("unreadCount", unreadCount);
+            model.addAttribute("likeVo", likeVo);
         }
-        model.addAttribute("likeVo", likeVo);
 
 //       关注通知
         Message follow = messageService.selectLastNotice(user.getId(), TOPIC_FOLLOW);
-        Map<String, Object> followVo = new HashMap<>();
-        if (like != null) {
+        if (follow != null) {
+            Map<String, Object> followVo = new HashMap<>();
             followVo.put("follow", follow);
 
             String content = HtmlUtils.htmlUnescape(follow.getContent());
@@ -215,8 +215,8 @@ public class MessageController implements CommunityConstant {
 
             int unreadCount = messageService.selectNoticeUnreadCount(user.getId(), TOPIC_FOLLOW);
             followVo.put("unreadCount", unreadCount);
+            model.addAttribute("followVo", followVo);
         }
-        model.addAttribute("followVo", followVo);
 
         int letterUnreadCount = messageService.selectLetterUnreadCount(user.getId(), null);
         model.addAttribute("letterUnreadCount",letterUnreadCount);

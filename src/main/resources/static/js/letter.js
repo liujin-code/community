@@ -6,6 +6,13 @@ $(function(){
 function send_letter() {
 	$("#sendModal").modal("hide");
 
+	// 发送ajax之前，将csrf设置到请求消息头中
+	// var token = $("meta[name='_csrf']").attr("content");
+	// var header = $("meta[name='_csrf_header']").attr("content");
+	// $(document).ajaxSend(function (e,xhr,options) {
+	// 	xhr.setRequestHeader(header,token);
+	// });
+
 	var name = $("#recipient-name").val();
 	var content = $("#message-text").val();
 

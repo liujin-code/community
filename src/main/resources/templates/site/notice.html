@@ -3,11 +3,11 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
+	<link rel="icon" href="http://img.liujin.top/headlogo.png"/>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
 	<link rel="stylesheet" th:href="@{/css/global.css}" />
 	<link rel="stylesheet" th:href="@{/css/letter.css}" />
-	<title>牛客网-通知</title>
+	<title>通知</title>
 </head>
 <body>
 	<div class="nk-container">
@@ -76,7 +76,7 @@
 				
 				<!-- 通知列表 -->
 				<ul class="list-unstyled">
-					<li class="media pb-3 pt-3 mb-3 border-bottom position-relative" th:if="${commentVo.comment!=null}">
+					<li class="media pb-3 pt-3 mb-3 border-bottom position-relative" th:if="${commentVo!=null}">
 						<span class="badge badge-danger" th:if="${commentVo.unreadCount!=0}" th:text="${commentVo.unreadCount}">3</span>
 						<img src="http://static.nowcoder.com/images/head/reply.png" class="mr-4 user-header" alt="通知图标">
 						<div class="media-body">
@@ -104,7 +104,7 @@
 							</div>
 						</div>
 					</li>
-					<li class="media pb-3 pt-3 mb-3 border-bottom position-relative" th:if="${likeVo.like!=null}">
+					<li class="media pb-3 pt-3 mb-3 border-bottom position-relative" th:if="${likeVo!=null}">
 						<span class="badge badge-danger" th:if="${likeVo.unreadCount!=0}" th:text="${likeVo.unreadCount}">3</span>
 						<img src="http://static.nowcoder.com/images/head/like.png" class="mr-4 user-header" alt="通知图标">
 						<div class="media-body">
@@ -125,7 +125,7 @@
 							</div>
 						</div>
 					</li>
-					<li class="media pb-3 pt-3 mb-3 border-bottom position-relative" th:if="${followVo.follow!=null}">
+					<li class="media pb-3 pt-3 mb-3 border-bottom position-relative" th:if="${followVo!=null}">
 						<span class="badge badge-danger" th:if="${followVo.unreadCount!=0}" th:text="${followVo.unreadCount}">3</span>
 						<img src="http://static.nowcoder.com/images/head/follow.png" class="mr-4 user-header" alt="通知图标">
 						<div class="media-body">
@@ -148,7 +148,7 @@
 		</div>
 
 		<!-- 尾部 -->
-		<footer class="bg-dark">
+		<footer class="bg-dark" th:replace="index::footer">
 			<div class="container">
 				<div class="row">
 					<!-- 二维码 -->

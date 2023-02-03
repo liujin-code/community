@@ -10,6 +10,10 @@ public class RedisKeyUtils {
     private static final String PREFIX_CAPTCHA = "captcha";
     private static final String PREFIX_TICKET = "ticket";
     private static final String PREFIX_USER = "user";
+    private static final String PREFIX_UV = "uv";
+    private static final String PREFIX_DAU = "dau";
+    private static final String PREFIX_POST = "post";
+    private static final String PREFIX_FORGET = "forget";
 
     //    实体的赞
     public static String getEntityLike(int entityType, int entityId) {
@@ -44,5 +48,27 @@ public class RedisKeyUtils {
 //    获取用户的key
     public static String getUserKey(int userId){
         return PREFIX_USER+SPLIT+userId;
+    }
+//    获取每日访问用户的key
+    public static String getUvKye(String date){
+        return PREFIX_UV+SPLIT+date;
+    }
+    public static String getUvKey(String start,String end){
+        return PREFIX_UV+SPLIT+start+SPLIT+end;
+    }
+//    获取日活key
+    public static String getDauKey(String date){
+        return PREFIX_DAU+SPLIT+date;
+    }
+    public static String getDauKey(String start,String end){
+        return PREFIX_DAU+SPLIT+start+SPLIT+end;
+    }
+//    帖子分数
+    public static String getPostScoreKey(){
+        return PREFIX_POST+SPLIT+"score";
+    }
+//    找回密码
+    public static String getForgetKey(String email){
+        return PREFIX_FORGET+SPLIT+email;
     }
 }

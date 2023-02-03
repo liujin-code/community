@@ -25,6 +25,9 @@
     <update id="updateHeader">
         update user set header_url = #{headerUrl} where id = #{userId}
     </update>
+    <update id="updateUserType">
+        update user set type = #{type} where id = #{userId}
+    </update>
 
     <select id="selectById" resultType="User">
         select <include refid="selectFields"></include>

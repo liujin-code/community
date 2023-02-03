@@ -15,4 +15,14 @@ public interface CommentMapper {
     int insertComment(Comment comment);
 
     Comment selectCommentById(int id);
+
+    List<Comment> selectCommentByUserId(int userId,int offset,int limit);
+
+    int selectCommentCountById(int userId);
+
+    List<Comment> selectCommentByEntityId(int entityId);
+
+    int updateCommentStatus(int commentId,int status);
+
+    int updateListCommentStatus(List<Integer> commentsId,int status);
 }

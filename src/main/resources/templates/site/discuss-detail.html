@@ -1,8 +1,11 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!--	<meta name="_csrf" th:content="${_csrf.token}">-->
+<!--	<meta name="_csrf_header" th:content="${_csrf.headerName}">-->
+
 	<link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
 	<link rel="stylesheet" th:href="@{/css/global.css}" />
@@ -68,9 +71,14 @@
 					<img src="http://static.nowcoder.com/images/img/icons/ico-discuss.png"/>
 					<span th:utext="${post.title}">备战春招，面试刷题跟他复习，一个月全搞定！</span>
 					<div class="float-right">
-						<button type="button" class="btn btn-danger btn-sm">置顶</button>
-						<button type="button" class="btn btn-danger btn-sm">加精</button>
-						<button type="button" class="btn btn-danger btn-sm">删除</button>
+						<input type="hidden" id="postId" th:value="${post.id}">
+						<button type="button" th:class="|btn ${post.type==1?'btn-secondary':'btn-danger'} btn-sm|" id="topBtn" th:text="${post.type==1?'已置顶':'置顶'}"
+							th:if="${loginUser!=null&&(loginUser.type==1||loginUser.type==2)}">置顶</button>
+<!--						sec:authorize="hasAnyAuthority('moderator','admin')"-->
+						<button type="button" th:class="|btn ${post.status==1?'btn-secondary':'btn-danger'} btn-sm|" id="wonderfulBtn" th:text="${post.status==1?'已加精':'加精'}"
+								th:if="${loginUser!=null&&(loginUser.type==1||loginUser.type==2)}">加精</button>
+						<button type="button" class="btn btn-danger btn-sm" id="deleteBtn"
+								th:if="${loginUser!=null&&(loginUser.type==1||loginUser.type==2||loginUser.id==user.id)}">删除</button>
 					</div>
 				</h6>
 				<!-- 作者 -->
@@ -203,12 +211,15 @@
 					<ul class="pagination justify-content-center" th:if="${page.rows>0}">
 						<li class="page-item"><a class="page-link" th:href="@{${page.path}(current=1)}">首页</a></li>
 						<li th:class="|page-item ${page.current==1?'disabled':''}|">
-							<a class="page-link" th:href="@{${page.path}(current-1)}">上一页</a>
+							<a class="page-link" th:href="@{${page.path}(current=${page.current-1})}">上一页</a>
 						</li>
 						<li th:class="|page-item ${page.current==i?'active':''}|" th:each="i:${#numbers.sequence(page.from,page.to)}">
 							<a class="page-link" th:href="@{${page.path}(current=${i})}" th:text="${i}">1</a>
 						</li>
-						<li th:class="|page-item ${page.current==page.total?'disabled':''}|"><a class="page-link" th:href="@{${page.path}(current+1)}">下一页</a></li>
+						<li th:class="|page-item ${page.current==page.total?'disabled':''}|">
+							<a class="page-link" th:href="@{${page.path}(current=${page.current+1})}">下一页
+							</a>
+						</li>
 						<li class="page-item">
 							<a class="page-link" th:href="@{${page.path}(current=${page.total})}">末页</a>
 						</li>
@@ -232,7 +243,7 @@
 		</div>
 
 		<!-- 尾部 -->
-		<footer class="bg-dark">
+		<footer class="bg-dark" th:replace="index::footer">
 			<div class="container">
 				<div class="row">
 					<!-- 二维码 -->

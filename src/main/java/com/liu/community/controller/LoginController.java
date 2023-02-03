@@ -6,6 +6,7 @@ import com.liu.community.entity.User;
 import com.liu.community.service.UserService;
 import com.liu.community.utils.CommunityConstant;
 import com.liu.community.utils.CommunityUtil;
+import com.liu.community.utils.CookieUtils;
 import com.liu.community.utils.RedisKeyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -13,16 +14,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.HttpRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
@@ -56,6 +57,62 @@ public class LoginController implements CommunityConstant {
         return "/site/login";
     }
 
+    @RequestMapping(value = "/forget",method = RequestMethod.GET)
+    public String getForgetPage(){
+        return "/site/forget";
+    }
+
+    @RequestMapping(value = "/forgetCode",method = RequestMethod.POST)
+    @ResponseBody
+    public String getForgetCode(String email,Model model){
+        if (StringUtils.isBlank(email)){
+            return CommunityUtil.getJsonString(500,"邮箱不能为空");
+        }
+
+//        已经发送过code
+        String forgetKey = RedisKeyUtils.getForgetKey(email);
+        String code = (String) redisTemplate.opsForValue().get(forgetKey);
+        System.out.println(code);
+        if (!StringUtils.isBlank(code)){
+//            model.addAttribute("codeMsg","已经发送过验证码到您的邮箱，请到邮箱查看!");
+            return CommunityUtil.getJsonString(500,"已经发送过验证码到您的邮箱，请到邮箱查看!");
+        }
+        Map<String, Object> map = userService.getForgetCode(email);
+        if (!map.containsKey("code")){
+            return CommunityUtil.getJsonString(500,(String)map.get("emailMsg"));
+//            model.addAttribute("emailMsg",map.get("emailMsg"));
+        }else{
+//            model.addAttribute("codeMsg","验证码已经发送到您的邮箱!");
+            return CommunityUtil.getJsonString(0,"验证码发送成功，请注意在邮箱查收!");
+        }
+    }
+
+    @RequestMapping(value = "/forget",method = RequestMethod.POST)
+    public String forget(String email,String code,String password,Model model){
+        if (StringUtils.isBlank(email)||StringUtils.isBlank(code)||StringUtils.isBlank(password)){
+            model.addAttribute("errorMsg","请输入数据");
+            model.addAttribute("email",email);
+            return "/site/forget";
+        }
+//        查找验证码
+        String forgetKey = RedisKeyUtils.getForgetKey(email);
+        String verifyCode = (String) redisTemplate.opsForValue().get(forgetKey);
+        if (verifyCode==null){
+            model.addAttribute("codeMsg","验证码已过期，请点击按钮重新发送！");
+            model.addAttribute("email",email);
+            return "/site/forget";
+        }
+        if (!verifyCode.equals(code)){
+            model.addAttribute("codeMsg","验证码错误！");
+            model.addAttribute("email",email);
+            return "/site/forget";
+        }
+        User user = userService.selectUserByEmail(email);
+        userService.updatePassword(user.getId(), password);
+        model.addAttribute("msg","修改密码成功，请登陆！");
+        model.addAttribute("target","/login");
+        return "/site/operate-result";
+    }
     @RequestMapping(path = "/register",method = RequestMethod.POST)
     public String register(Model model, User user){
         Map<String, Object> map = userService.register(user);
@@ -128,11 +185,15 @@ public class LoginController implements CommunityConstant {
         }
     }
     @RequestMapping(path = "/login",method = RequestMethod.POST)
-    public String login(String username,String password,String code,Model model,
-                        boolean rememberMe/*,HttpSession session*/,HttpServletResponse response,@CookieValue("captchaOwner")String captchaOwner)  {
+    public String login(String username, String password, String code, Model model,
+                        boolean rememberMe/*,HttpSession session*/, HttpServletResponse response, HttpServletRequest request/*@CookieValue("captchaOwner")String captchaOwner*/)  {
 //        String captcha = (String) session.getAttribute("captcha");
         String captcha = null;
-
+        String captchaOwner = CookieUtils.getValue(request, "captchaOwner");
+        if (captchaOwner==null){
+            model.addAttribute("codeMsg", "验证码已过期!");
+            return "/site/login";
+        }
 //      从redis中获取captcha
         if (!StringUtils.isBlank(captchaOwner)){
             String captchaKey = RedisKeyUtils.getCaptchaKey(captchaOwner);
@@ -161,6 +222,7 @@ public class LoginController implements CommunityConstant {
     @RequestMapping(path = "/logout",method = RequestMethod.GET)
     public String logOut(@CookieValue String ticket){
         userService.logout(ticket);
+        SecurityContextHolder.clearContext();
         return "redirect:/index";
     }
 }

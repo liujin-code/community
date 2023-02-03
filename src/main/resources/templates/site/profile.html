@@ -3,10 +3,13 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
+<!--	<meta name="_csrf" th:content="${_csrf.token}">-->
+<!--	<meta name="_csrf_header" th:content="${_csrf.headerName}">-->
+
+	<link rel="icon" href="http://img.liujin.top/headlogo.png"/>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
 	<link rel="stylesheet" th:href="@{/css/global.css}" />
-	<title>牛客网-个人主页</title>
+	<title>个人主页</title>
 </head>
 <body>
 	<div class="nk-container">
@@ -65,26 +68,34 @@
 				<div class="position-relative">
 					<ul class="nav nav-tabs">
 						<li class="nav-item">
-							<a class="nav-link active" href="profile.html">个人信息</a>
+							<a class="nav-link active" th:href="@{|/user/profile/${user.id}|}">个人信息</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="my-post.html">我的帖子</a>
+							<a class="nav-link" th:href="@{|/user/myPosts/${user.id}|}">帖子详情</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="my-reply.html">我的回复</a>
+							<a class="nav-link" th:href="@{|/user/myReply/${user.id}|}"
+							   th:if="${loginUser!=null&&(loginUser.type==1||loginUser.type==2||loginUser.id==user.id)}">
+								回复详情
+							</a>
 						</li>
 					</ul>
 				</div>
 				<!-- 个人信息 -->
 				<div class="media mt-5">
-					<img th:src="${user.headerUrl}" class="align-self-start mr-4 rounded-circle" alt="用户头像" style="width:50px;">
+					<img th:src="${user.headerUrl}" class="align-self-start mr-4 rounded-circle" alt="用户头像" style="width:50px;height: 50px;">
 					<div class="media-body">
 						<h5 class="mt-0 text-warning">
 							<span th:utext="${user.username}">nowcoder</span>
 							<input type="hidden" id="entityId" th:value="${user.id}">
 							<button type="button" th:class="|btn ${hasFollowed?'btn-secondary':'btn-info'} btn-sm float-right mr-5 follow-btn|"
-									th:text="${hasFollowed?'已关注':'关注TA'}" th:if="${loginUser!=null&&loginUser.id!=user.id}">
+							th:text="${hasFollowed?'已关注':'关注TA'}" th:if="${loginUser!=null&&loginUser.id!=user.id}">
 								关注TA
+							</button>
+<!--							<i th:text="${user.type}"></i>-->
+							<button type="button" th:class="|btn ${user.type==1?'btn-secondary':'btn-info'} btn-sm float-right mr-5 manage-btn|"
+							th:text="${user.type==1?'管理员':'设为管理员'}" th:if="${loginUser!=null&&loginUser.type==2}">
+								设置为管理员
 							</button>
 						</h5>
 						<div class="text-muted mt-3">
@@ -101,7 +112,7 @@
 		</div>
 
 		<!-- 尾部 -->
-		<footer class="bg-dark">
+		<footer class="bg-dark" th:replace="index::footer">
 			<div class="container">
 				<div class="row">
 					<!-- 二维码 -->

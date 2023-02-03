@@ -44,11 +44,13 @@ public class SensitiveFilter {
 //            单词已添加
             if (current.getSubNode(c) != null) {
                 current = current.getSubNode(c);
-            }
+            }else{
 //            单词未添加
-            TrieNode subNode = new TrieNode();
-            current.addSubNode(c, subNode);
-            current = subNode;
+                TrieNode subNode = new TrieNode();
+                current.addSubNode(c, subNode);
+                current = subNode;
+            }
+
             if (i == text.length() - 1) {
                 current.setKeywordEnd(true);
             }

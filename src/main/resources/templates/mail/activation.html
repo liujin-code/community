@@ -2,18 +2,20 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
-    <link rel="icon" th:href="@{https://static.nowcoder.com/images/logo_87_87.png}"/>
-    <title>牛客网-激活账号</title>
+	<link rel="icon" href="http://img.liujin.top/headlogo.png"/>
+    <title>激活账号</title>
 </head>
 <body>
 	<div>
 		<p>
 			<b th:utext="${email}">xxx@xxx.com</b>, 您好!
 		</p>
-		<p>
-			您正在注册牛客网, 这是一封激活邮件, 请点击 
+		<br>
+			您正在注册LIUJIN.TOP的账号, 这是一封激活邮件, 请点击
 			<a th:href="${url}">点击此处激活</a>,
-			激活您的牛客账号!
+			激活您的LIUJIN.TOP账号!</br>
+			如果打不开链接，您也可以通过手动输入以下链接的方式激活账号</br>
+		<p th:text="${url}"></p>
 		</p>
 	</div>
 </body>

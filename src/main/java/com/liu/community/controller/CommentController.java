@@ -9,7 +9,9 @@ import com.liu.community.service.CommentService;
 import com.liu.community.service.DiscussPostService;
 import com.liu.community.utils.CommunityConstant;
 import com.liu.community.utils.HostHolder;
+import com.liu.community.utils.RedisKeyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +35,8 @@ public class CommentController implements CommunityConstant {
     @Autowired
     private DiscussPostService discussPostService;
 
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @RequestMapping(path = "/add/{id}",method = RequestMethod.POST)
     public String add(@PathVariable("id") int id, Comment comment){
@@ -67,6 +71,11 @@ public class CommentController implements CommunityConstant {
                     .setEntityType(ENTITY_TYPE_POST)
                     .setEntityId(id);
             eventProducer.handlerEvent(event);
+
+//            计算帖子分数
+            String postScoreKey = RedisKeyUtils.getPostScoreKey();
+            redisTemplate.opsForSet().add(postScoreKey,comment.getEntityId());
+            System.out.println("entityId= "+comment.getEntityId()+"id"+id);
         }
 
         return "redirect:/discuss/detail/"+id;

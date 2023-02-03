@@ -37,7 +37,6 @@ public class FollowServiceImpl implements FollowService , CommunityConstant {
 
                 redisTemplate.opsForZSet().add(followeeKey,entityId,System.currentTimeMillis());
                 redisTemplate.opsForZSet().add(followerKey,userId,System.currentTimeMillis());
-
                 return operations.exec();
             }
         });

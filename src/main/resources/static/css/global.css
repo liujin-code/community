@@ -21,11 +21,11 @@ body {
 }
 
 header .navbar-brand {
-	background: url('http://static.nowcoder.com/images/res/logo/logo-v3.png') no-repeat;
-	background-size: 147px 42px;
+	background: url('http://img.liujin.top/logo08.png') no-repeat;
+	background-size: 147px 50px;
 	width: 147px;
-	height: 42px;
-	margin: 5px 15px 5px 0;
+	height: 50px;
+	margin: 5px 7px 5px 0;
 }
 
 header .navbar {

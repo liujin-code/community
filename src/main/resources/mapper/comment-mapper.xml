@@ -14,6 +14,19 @@
         comment(<include refid="insertFields"></include>)
         values(#{userId},#{entityType},#{entityId},#{targetId},#{content},#{status},#{createTime})
     </insert>
+    <update id="updateCommentStatus">
+        update comment
+        set status = #{status}
+        where id = #{commentId}
+    </update>
+    <update id="updateListCommentStatus">
+        update comment
+        set status = #{status}
+        where id in
+        <foreach collection="commentsId" open="(" separator="," close=")" item="id">
+            #{id}
+        </foreach>
+    </update>
 
     <select id="selectCommentByEntity" resultType="com.liu.community.entity.Comment">
         select <include refid="selectFields"></include>
@@ -35,5 +48,26 @@
         select <include refid="selectFields"></include>
         from comment
         where id = #{id}
+    </select>
+    <select id="selectCommentByUserId" resultType="Comment">
+        select <include refid="selectFields"></include>
+        from comment
+        where user_id = #{userId}
+        and status != 1
+        order by create_time desc
+        limit #{offset},#{limit}
+    </select>
+    <select id="selectCommentCountById" resultType="java.lang.Integer">
+        select count(id)
+        from comment
+        where user_id = #{userId}
+        and status != 1
+    </select>
+    <select id="selectCommentByEntityId" resultType="com.liu.community.entity.Comment">
+        select <include refid="selectFields"></include>
+        from comment
+        where entity_id = #{entityId}
+        and status!=1
+--         and entity_type = 2
     </select>
 </mapper>

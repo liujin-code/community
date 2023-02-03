@@ -3,10 +3,13 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>
+<!--	<meta name="_csrf" th:content="${_csrf.token}">-->
+<!--	<meta name="_csrf_header" th:content="${_csrf.headerName}">-->
+<!--	<link rel="icon" href="https://static.nowcoder.com/images/logo_87_87.png"/>-->
+	<link rel="icon" href="http://img.liujin.top/headlogo.png"/>
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" crossorigin="anonymous">
 	<link rel="stylesheet" th:href="@{/css/global.css}" />
-	<title>牛客网-首页</title>
+	<title>首页</title>
 </head>
 <body>	
 	<div class="nk-container">
@@ -65,10 +68,10 @@
 					<!-- 筛选条件 -->
 					<ul class="nav nav-tabs mb-3">
 						<li class="nav-item">
-							<a class="nav-link active" href="#">最新</a>
+							<a th:class="|nav-link ${orderMode==0?'active':''}|" th:href="@{/index(orderMode=0)}">最新</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" href="#">最热</a>
+							<a th:class="|nav-link ${orderMode==1?'active':''}|" th:href="@{/index(orderMode=1)}">最热</a>
 						</li>
 					</ul>
 					<button type="button" class="btn btn-primary btn-sm position-absolute rt-0" data-toggle="modal" data-target="#publishModal" th:if="${loginUser!=null}">我要发布</button>
@@ -145,7 +148,7 @@
 					<ul class="pagination justify-content-center">
 						<li class="page-item"><a class="page-link" th:href="@{${page.path}(current=1)}">首页</a></li>
 						<li th:class="|page-item ${page.current==1?'disabled':''}|">
-						<a class="page-link" th:href="@{page.path(current=${page.current-1})}">上一页</a>
+						<a class="page-link" th:href="@{${page.path}(current=${page.current-1})}">上一页</a>
 						</li>
 						<li th:class="|page-item ${page.current == i?'active':''}|" th:each="i:${#numbers.sequence(page.from,page.to)}">
 							<a class="page-link" th:href="@{${page.path}(current=${i})}" th:utext="${i}">1</a>
@@ -160,58 +163,29 @@
 		</div>
 
 		<!-- 尾部 -->
-		<footer class="bg-dark">
+		<footer class="bg-dark" th:fragment="footer">
 			<div class="container">
 				<div class="row">
 					<!-- 二维码 -->
 					<div class="col-4 qrcode">
-						<img src="https://uploadfiles.nowcoder.com/app/app_download.png" class="img-thumbnail" style="width:136px;" />
+<!--						<img src="https://uploadfiles.nowcoder.com/app/app_download.png" class="img-thumbnail" style="width:136px;" />-->
+						<img src="http://img.liujin.top/wechat.jpg" class="img-thumbnail" style="width:136px;" />
 					</div>
-					<!-- 公司信息 -->
 					<div class="col-8 detail-info">
-						<div class="row">
-							<div class="col">
-								<ul class="nav">
-									<li class="nav-item">
-										<a class="nav-link text-light" href="#">关于我们</a>
-									</li>
-									<li class="nav-item">
-										<a class="nav-link text-light" href="#">加入我们</a>
-									</li>
-									<li class="nav-item">
-										<a class="nav-link text-light" href="#">意见反馈</a>
-									</li>
-									<li class="nav-item">
-										<a class="nav-link text-light" href="#">企业服务</a>
-									</li>
-									<li class="nav-item">
-										<a class="nav-link text-light" href="#">联系我们</a>
-									</li>
-									<li class="nav-item">
-										<a class="nav-link text-light" href="#">免责声明</a>
-									</li>
-									<li class="nav-item">
-										<a class="nav-link text-light" href="#">友情链接</a>
-									</li>
-								</ul>
-							</div>
-						</div>
+						</br>
 						<div class="row">
 							<div class="col">
 								<ul class="nav btn-group-vertical company-info">
 									<li class="nav-item text-white-50">
-										公司地址：北京市朝阳区大屯路东金泉时代3-2708北京牛客科技有限公司
+										这一个个人分享平台，大家可以畅所欲言，如果使用过程中出现问题可以联系我
 									</li>
 									<li class="nav-item text-white-50">
-										联系方式：010-60728802(电话)&nbsp;&nbsp;&nbsp;&nbsp;admin@nowcoder.com
+										联系方式：1301605326(微信)&nbsp;&nbsp;&nbsp;&nbsp;1301605326@qq.com
 									</li>
 									<li class="nav-item text-white-50">
-										牛客科技©2018 All rights reserved
-									</li>
-									<li class="nav-item text-white-50">
-										京ICP备14055008号-4 &nbsp;&nbsp;&nbsp;&nbsp;
-										<img src="http://static.nowcoder.com/company/images/res/ghs.png" style="width:18px;" />
-										京公网安备 11010502036488号
+										<a href="https://beian.miit.gov.cn/" target="_blank">
+											湘ICP备2021006420号
+										</a>
 									</li>
 								</ul>
 							</div>
